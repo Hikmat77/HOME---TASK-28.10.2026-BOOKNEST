@@ -1,9 +1,19 @@
-﻿using Domain.Models;
+﻿using Application.Services;
+using Domain.Models;
+using Infrastructure.Data;
 using Infrastructure.Repositories;
 
-var bookRepo = new BookRepository();
-var authorRepo = new AuthorRepository();
-var genreRepo = new GenreRepository();
+var appDbContext = new AppDbContext();
+
+var bookRepository = new BookRepository(appDbContext);
+var bookService = new BookService(bookRepository);
+
+var authorRepository = new AuthorRepository(appDbContext);
+var authorService = new AuthorService(authorRepository);
+
+var genreRepository = new GenreRepository(appDbContext);
+var genreService = new GenreService(genreRepository);
+
 
 while (true)
 {
@@ -43,252 +53,189 @@ while (true)
     System.Console.WriteLine("======================================");
     switch (a)
     {
-        // ===================== BOOKS =====================
         case "1":
+        {
+            var books = await bookService.GetBooksAsync();
+            if (books.Data is not null)
             {
-                var books = await bookRepo.GetBooksAsync();
-                foreach (var b in books)
+                foreach (var book in books.Data)
                 {
-                    System.Console.WriteLine($"{b.Id} | {b.Title} | {b.PublishedYear} | {b.TotalCopies}");
+                    System.Console.WriteLine($"{book.Id} | {book.Title} | {book.PublishedYear} | {book.TotalCopies}");
                 }
-                break;
             }
+            break;
+        }
         case "2":
-            {
-                System.Console.Write("Enter book id --> ");
-                var id = Convert.ToInt32(Console.ReadLine());
-                var b = await bookRepo.GetBookAsync(id);
-                System.Console.WriteLine($"{b.Id} | {b.Title} | {b.PublishedYear} | {b.TotalCopies}");
-                break;
-            }
+            System.Console.Write("Enter book id --> ");
+            var bookId = Convert.ToInt32(Console.ReadLine());
+            await bookService.GetBookAsync(bookId);
+            break;
         case "3":
+            System.Console.Write("Enter Title --> ");
+            var title = Console.ReadLine()!;
+            System.Console.Write("Enter Published Year --> ");
+            var year = Convert.ToInt32(Console.ReadLine());
+            System.Console.Write("Enter Total Copies --> ");
+            var copies = Convert.ToInt32(Console.ReadLine());
+            var newBook = new Book()
             {
-                System.Console.Write("Enter Title --> ");
-                var title = Console.ReadLine()!;
-                System.Console.Write("Enter Published Year --> ");
-                var year = Convert.ToInt32(Console.ReadLine());
-                System.Console.Write("Enter Total Copies --> ");
-                var copies = Convert.ToInt32(Console.ReadLine());
-                var newBook = new Book()
-                {
-                    Title = title,
-                    PublishedYear = year,
-                    TotalCopies = copies
-                };
-                await bookRepo.AddBookAsync(newBook);
-                break;
-            }
+                Title = title,
+                PublishedYear = year,
+                TotalCopies = copies
+            };
+            await bookService.AddBookAsync(newBook);
+            break;
         case "4":
+            System.Console.Write("Enter Id to update --> ");
+            var uBookId = Convert.ToInt32(Console.ReadLine());
+            System.Console.Write("Enter Title --> ");
+            var uTitle = Console.ReadLine()!;
+            System.Console.Write("Enter Published Year --> ");
+            var uYear = Convert.ToInt32(Console.ReadLine());
+            System.Console.Write("Enter Total Copies --> ");
+            var uCopies = Convert.ToInt32(Console.ReadLine());
+            var updateBook = new Book()
             {
-                System.Console.Write("Enter Id to update --> ");
-                var uid = Convert.ToInt32(Console.ReadLine());
-                System.Console.Write("Enter Title --> ");
-                var utitle = Console.ReadLine()!;
-                System.Console.Write("Enter Published Year --> ");
-                var uyear = Convert.ToInt32(Console.ReadLine());
-                System.Console.Write("Enter Total Copies --> ");
-                var ucopies = Convert.ToInt32(Console.ReadLine());
-                var updateBook = new Book()
-                {
-                    Id = uid,
-                    Title = utitle,
-                    PublishedYear = uyear,
-                    TotalCopies = ucopies
-                };
-                await bookRepo.UpdateBookAsync(updateBook);
-                break;
-            }
+                Id = uBookId,
+                Title = uTitle,
+                PublishedYear = uYear,
+                TotalCopies = uCopies
+            };
+            await bookService.UpdateBookAsync(updateBook);
+            break;
         case "5":
-            {
-                System.Console.Write("Enter id to delete --> ");
-                var did = Convert.ToInt32(Console.ReadLine());
-                await bookRepo.DeleteBookAsync(did);
-                break;
-            }
-
-        // ===================== AUTHORS =====================
+            System.Console.Write("Enter id to delete --> ");
+            var dBookId = Convert.ToInt32(Console.ReadLine());
+            await bookService.DeleteBookAsync(dBookId);
+            break;
         case "6":
+        {
+            var authors = await authorService.GetAuthorsAsync();
+            if (authors.Data is not null)
             {
-                var authors = await authorRepo.GetAuthorsAsync();
-                foreach (var author in authors)
+                foreach (var author in authors.Data)
                 {
                     System.Console.WriteLine($"{author.Id} | {author.Fullname} | {author.Country} | {author.BirthYear}");
                 }
-                break;
             }
+            break;
+        }
         case "7":
-            {
-                System.Console.Write("Enter author id --> ");
-                var id = Convert.ToInt32(Console.ReadLine());
-                var ath = await authorRepo.GetAuthorAsync(id);
-                System.Console.WriteLine($"{ath.Id} | {ath.Fullname} | {ath.Country} | {ath.BirthYear}");
-                break;
-            }
+            System.Console.Write("Enter author id --> ");
+            var authorId = Convert.ToInt32(Console.ReadLine());
+            await authorService.GetAuthorAsync(authorId);
+            break;
         case "8":
+            System.Console.Write("Enter Fullname --> ");
+            var name = Console.ReadLine()!;
+            System.Console.Write("Enter Country --> ");
+            var country = Console.ReadLine()!;
+            System.Console.Write("Enter Birth Year --> ");
+            var birthYear = Convert.ToInt32(Console.ReadLine());
+            var newAuthor = new Author()
             {
-                System.Console.Write("Enter Fullname --> ");
-                var name = Console.ReadLine()!;
-                System.Console.Write("Enter Country --> ");
-                var country = Console.ReadLine()!;
-                System.Console.Write("Enter Birth Year --> ");
-                var birthYear = Convert.ToInt32(Console.ReadLine());
-                var newAuthor = new Author()
-                {
-                    Fullname = name,
-                    Country = country,
-                    BirthYear = birthYear
-                };
-                await authorRepo.AddAuthorAsync(newAuthor);
-                break;
-            }
+                Fullname = name,
+                Country = country,
+                BirthYear = birthYear
+            };
+            await authorService.AddAuthorAsync(newAuthor);
+            break;
         case "9":
+            System.Console.Write("Enter Id to update --> ");
+            var uAuthorId = Convert.ToInt32(Console.ReadLine());
+            System.Console.Write("Enter Fullname --> ");
+            var uName = Console.ReadLine()!;
+            System.Console.Write("Enter Country --> ");
+            var uCountry = Console.ReadLine()!;
+            System.Console.Write("Enter Birth Year --> ");
+            var uBirthYear = Convert.ToInt32(Console.ReadLine());
+            var updateAuthor = new Author()
             {
-                System.Console.Write("Enter Id to update --> ");
-                var uid = Convert.ToInt32(Console.ReadLine());
-                System.Console.Write("Enter Fullname --> ");
-                var uname = Console.ReadLine()!;
-                System.Console.Write("Enter Country --> ");
-                var ucountry = Console.ReadLine()!;
-                System.Console.Write("Enter Birth Year --> ");
-                var ubirthYear = Convert.ToInt32(Console.ReadLine());
-                var updateAuthor = new Author()
-                {
-                    Id = uid,
-                    Fullname = uname,
-                    Country = ucountry,
-                    BirthYear = ubirthYear
-                };
-                await authorRepo.UpdateAuthorAsync(updateAuthor);
-                break;
-            }
+                Id = uAuthorId,
+                Fullname = uName,
+                Country = uCountry,
+                BirthYear = uBirthYear
+            };
+            await authorService.UpdateAuthorAsync(updateAuthor);
+            break;
         case "10":
-            {
-                System.Console.Write("Enter id to delete --> ");
-                var did = Convert.ToInt32(Console.ReadLine());
-                await authorRepo.DeleteAuthorAsync(did);
-                break;
-            }
-
-        // ===================== GENRES =====================
+            System.Console.Write("Enter id to delete --> ");
+            var dAuthorId = Convert.ToInt32(Console.ReadLine());
+            await authorService.DeleteAuthorAsync(dAuthorId);
+            break;
         case "11":
-            {
-                var genres = await genreRepo.GetGenresAsync();
-                foreach (var genre in genres)
-                {
-                    System.Console.WriteLine($"{genre.Id} | {genre.Name}");
-                }
-                break;
-            }
+            await genreService.GetAllGenresAsync();
+            break;
         case "12":
-            {
-                System.Console.Write("Enter genre id --> ");
-                var id = Convert.ToInt32(Console.ReadLine());
-                var g = await genreRepo.GetGenreAsync(id);
-                System.Console.WriteLine($"{g.Id} | {g.Name}");
-                break;
-            }
+            System.Console.Write("Enter genre id --> ");
+            var genreId = Convert.ToInt32(Console.ReadLine());
+            await genreService.GetGenreAsync(genreId);
+            break;
         case "13":
+            System.Console.Write("Enter Name --> ");
+            var genreName = Console.ReadLine()!;
+            var newGenre = new Genre()
             {
-                System.Console.Write("Enter Name --> ");
-                var name = Console.ReadLine()!;
-                var newGenre = new Genre()
-                {
-                    Name = name
-                };
-                await genreRepo.AddGenreAsync(newGenre);
-                break;
-            }
+                Name = genreName
+            };
+            await genreService.AddGenreAsync(newGenre);
+            break;
         case "14":
+            System.Console.Write("Enter Id to update --> ");
+            var uGenreId = Convert.ToInt32(Console.ReadLine());
+            System.Console.Write("Enter Name --> ");
+            var uGenreName = Console.ReadLine()!;
+            var updateGenre = new Genre()
             {
-                System.Console.Write("Enter Id to update --> ");
-                var uid = Convert.ToInt32(Console.ReadLine());
-                System.Console.Write("Enter Name --> ");
-                var uname = Console.ReadLine()!;
-                var updateGenre = new Genre()
-                {
-                    Id = uid,
-                    Name = uname
-                };
-                await genreRepo.UpdateGenreAsync(updateGenre);
-                break;
-            }
+                Id = uGenreId,
+                Name = uGenreName
+            };
+            await genreService.UpdateGenreAsync(updateGenre);
+            break;
         case "15":
-            {
-                System.Console.Write("Enter id to delete --> ");
-                var did = Convert.ToInt32(Console.ReadLine());
-                await genreRepo.DeleteGenreAsync(did);
-                break;
-            }
-
-        // ===================== STATISTICS =====================
+            System.Console.Write("Enter id to delete --> ");
+            var dGenreId = Convert.ToInt32(Console.ReadLine());
+            await genreService.DeleteGenreAsync(dGenreId);
+            break;
         case "16":
-            {
-                var amount = await bookRepo.GetBookAmountAsync();
-                System.Console.WriteLine($"Books amount: {amount}");
-                break;
-            }
+            await bookService.GetBookAmountAsync();
+            break;
         case "17":
-            {
-                var amount = await authorRepo.GetAuthorsAmountAsync();
-                System.Console.WriteLine($"Authors amount: {amount}");
-                break;
-            }
+            await authorService.GetAuthorsAmountAsync();
+            break;
         case "18":
-            {
-                var amount = await genreRepo.GetGenresAmountAsync();
-                System.Console.WriteLine($"Genres amount: {amount}");
-                break;
-            }
+            await genreService.GetGenresAmountAsync();
+            break;
         case "19":
-            {
-                System.Console.Write("Enter author id --> ");
-                var authorId = Convert.ToInt32(Console.ReadLine());
-                var minYear = await bookRepo.GetMinPublishedYearByAuthorAsync(authorId);
-                System.Console.WriteLine($"Min published year: {minYear}");
-                break;
-            }
+            System.Console.Write("Enter author id --> ");
+            var minAuthorId = Convert.ToInt32(Console.ReadLine());
+            await bookService.GetMinPublishedYearByAuthorAsync(minAuthorId);
+            break;
         case "20":
-            {
-                System.Console.Write("Enter author id --> ");
-                var authorId = Convert.ToInt32(Console.ReadLine());
-                var maxYear = await bookRepo.GetMaxPublishedYearByAuthorAsync(authorId);
-                System.Console.WriteLine($"Max published year: {maxYear}");
-                break;
-            }
+            System.Console.Write("Enter author id --> ");
+            var maxAuthorId = Convert.ToInt32(Console.ReadLine());
+            await bookService.GetMaxPublishedYearByAuthorAsync(maxAuthorId);
+            break;
         case "21":
-            {
-                System.Console.Write("Enter genre id --> ");
-                var genreId = Convert.ToInt32(Console.ReadLine());
-                var minYear = await bookRepo.GetMinPublishedYearByGenreAsync(genreId);
-                System.Console.WriteLine($"Min published year: {minYear}");
-                break;
-            }
+            System.Console.Write("Enter genre id --> ");
+            var minGenreId = Convert.ToInt32(Console.ReadLine());
+            await bookService.GetMinPublishedYearByGenreAsync(minGenreId);
+            break;
         case "22":
-            {
-                System.Console.Write("Enter genre id --> ");
-                var genreId = Convert.ToInt32(Console.ReadLine());
-                var maxYear = await bookRepo.GetMaxPublishedYearByGenreAsync(genreId);
-                System.Console.WriteLine($"Max published year: {maxYear}");
-                break;
-            }
+            System.Console.Write("Enter genre id --> ");
+            var maxGenreId = Convert.ToInt32(Console.ReadLine());
+            await bookService.GetMaxPublishedYearByGenreAsync(maxGenreId);
+            break;
         case "23":
-            {
-                System.Console.Write("Enter published year --> ");
-                var year = Convert.ToInt32(Console.ReadLine());
-                var amount = await bookRepo.GetAmountByPublishedYearAsync(year);
-                System.Console.WriteLine($"Books amount: {amount}");
-                break;
-            }
+            System.Console.Write("Enter published year --> ");
+            var publishedYear = Convert.ToInt32(Console.ReadLine());
+            await bookService.GetAmountByPublishedYearAsync(publishedYear);
+            break;
         case "24":
-            {
-                System.Console.Write("Enter genre id --> ");
-                var genreId = Convert.ToInt32(Console.ReadLine());
-                var amount = await bookRepo.GetAmountByGenreAsync(genreId);
-                System.Console.WriteLine($"Books amount: {amount}");
-                break;
-            }
-
-        // ===================== EXIT =====================
+            System.Console.Write("Enter genre id --> ");
+            var amountGenreId = Convert.ToInt32(Console.ReadLine());
+            await bookService.GetAmountByGenreAsync(amountGenreId);
+            break;
         case "0":
             System.Console.WriteLine("Exiting....");
             return;
